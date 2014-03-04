@@ -9,4 +9,4 @@ I also included a "poor man's" DNS unblocking sample configuration using just a 
 
 See here for more information and a running proof of concept server / Dnsmasq DNS forwarding configuration: http://trick77.com/2014/03/02/dns-unblocking-using-dnsmasq-haproxy/
 
-This will work great on a low-end $15/year virtual private server for you and your friends. 
+This will work greatly on a low-end $15/year virtual private server for you and your friends.
