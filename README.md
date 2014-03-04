@@ -7,6 +7,4 @@ See here for more information: http://trick77.com/2014/03/01/tunlr-style-dns-unb
 
 I also included a "poor man's" DNS unblocking sample configuration using just a single IP address. This should work fine with SNI-capable web browsers/devices but totally won't work with non-SNI-capable devices.
 
-See here for more information and a running proof of concept server / Dnsmasq DNS forwarding configuration:
-
-http://trick77.com/2014/03/02/dns-unblocking-using-dnsmasq-haproxy/
+See here for more information and a running proof of concept server / Dnsmasq DNS forwarding configuration: http://trick77.com/2014/03/02/dns-unblocking-using-dnsmasq-haproxy/
