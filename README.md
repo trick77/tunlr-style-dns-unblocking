@@ -9,6 +9,7 @@ I also included a working "poor man's" DNS unblocking sample configuration using
 
 See here for more information and a running proof of concept server / Dnsmasq DNS forwarding configuration: http://trick77.com/2014/03/02/dns-unblocking-using-dnsmasq-haproxy/
 
-haproxy.conf - Sample configuration using a combination of SNI and non-SNI backends which will work with non-SNI-capable devices as well. Won't run without modification. Requires around 20 different IP addresses.
-
-poor-mans-haproxy.conf - Working sample configuration using a single IP address. Won't work with non-SNI-capable devices. This will work greatly on a low-end $15/year virtual private server for you and your friends.
+| File | Description          |
+| ------------- | ----------- |
+| haproxy.conf      | Sample configuration using a combination of SNI and non-SNI backends which will work with non-SNI-capable devices as well. Won't run without modification. Requires around 20 different IP addresses.|
+| poor-mans-haproxy.conf     | Working sample configuration using a single IP address. Won't work with non-SNI-capable devices. This will work greatly on a low-end $15/year virtual private server for you and your friends.    |
