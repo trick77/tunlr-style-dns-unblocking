@@ -14,3 +14,6 @@ See here for more information and a running proof of concept server / Dnsmasq DN
 | haproxy.conf      | Sample configuration using a combination of SNI and non-SNI backends which will work with non-SNI-capable devices as well. Won't run without modification. Requires around 20 different IP addresses.|
 | poor-mans-haproxy.conf     | Working sample configuration using a single IP address. Won't work with non-SNI-capable devices. This will work greatly on a low-end $15/year virtual private server for you and your friends.    |
 | poor-mans-dnsmasq.txt | Matching Dnsmasq configuration for the poor-mans-haproxy.conf |
+| haproxy-genconf.php | Experimental, advanced stuff allowing non-SNI devices like Playstation 3, XBox360 to work using a single, public IP address thanks to DNATing |
+| config.json | Configuration input file for haproxy-genconf.php |
+
