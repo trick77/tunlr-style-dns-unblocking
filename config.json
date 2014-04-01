@@ -394,6 +394,102 @@
       ],
       "catchall": false,
       "enabled": true
+    },    
+    {
+      "name": "netflix-ssm",
+      "dest_addr": "ssm.internet.sony.tv",
+      "modes": [
+        {
+          "port": 80,
+          "mode": "http"
+        },
+        {
+          "port": 443,
+          "mode": "https"
+        }
+      ],
+      "catchall": false,
+      "enabled": true
+    },
+    {
+      "name": "netflix-ssm1",
+      "dest_addr": "ssm1.internet.sony.tv",
+      "modes": [
+        {
+          "port": 80,
+          "mode": "http"
+        },
+        {
+          "port": 443,
+          "mode": "https"
+        }
+      ],
+      "catchall": false,
+      "enabled": true
+    },
+    {
+      "name": "netflix-ssm2",
+      "dest_addr": "ssm2.internet.sony.tv",
+      "modes": [
+        {
+          "port": 80,
+          "mode": "http"
+        },
+        {
+          "port": 443,
+          "mode": "https"
+        }
+      ],
+      "catchall": false,
+      "enabled": true
+    },
+    {
+      "name": "netflix-ssm3",
+      "dest_addr": "ssm3.internet.sony.tv",
+      "modes": [
+        {
+          "port": 80,
+          "mode": "http"
+        },
+        {
+          "port": 443,
+          "mode": "https"
+        }
+      ],
+      "catchall": false,
+      "enabled": true
+    },
+    {
+      "name": "netflix-treb",
+      "dest_addr": "treb.internet.sony.tv",
+      "modes": [
+        {
+          "port": 80,
+          "mode": "http"
+        },
+        {
+          "port": 443,
+          "mode": "https"
+        }
+      ],
+      "catchall": false,
+      "enabled": true
+    },
+     {
+      "name": "netflix-wdtv",
+      "dest_addr": "www.wdtvlive.com",
+      "modes": [
+        {
+          "port": 80,
+          "mode": "http"
+        },
+        {
+          "port": 443,
+          "mode": "https"
+        }
+      ],
+      "catchall": false,
+      "enabled": true
     },
     {
       "name": "pandora-www",
@@ -1250,6 +1346,22 @@
     {
       "name": "yahoo-hls",
       "dest_addr": "hls.video.query.yahoo.com",
+      "modes": [
+        {
+          "port": 80,
+          "mode": "http"
+        },
+        {
+          "port": 443,
+          "mode": "https"
+        }
+      ],
+      "catchall": true,
+      "enabled": true
+    },
+    {
+      "name": "usopen-geo",
+      "dest_addr": "usgageo.edgesuite.net",
       "modes": [
         {
           "port": 80,
