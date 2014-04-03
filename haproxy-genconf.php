@@ -89,7 +89,7 @@ class HAProxy_GenConf {
         echo PHP_EOL;
         echo 'If you are using an inbound firewall on ' . $haproxy_bind_ip . ':' . PHP_EOL;
         if ($json->stats->enabled) {
-            echo $iptables_location . ' -A INPUT -p tcp -m state --state NEW ' . $haproxy_bind_ip . ' --dport ' . $json->stats->port . ' -j ACCEPT' . PHP_EOL;
+            echo $iptables_location . ' -A INPUT -p tcp -m state --state NEW -d ' . $haproxy_bind_ip . ' --dport ' . $json->stats->port . ' -j ACCEPT' . PHP_EOL;
         }
         echo $iptables_location . ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' . $haproxy_bind_ip . ' --dports ' . $json->dnat_base_port . ':' .
              --$current_dnat_port . ' -j ACCEPT' . PHP_EOL;
