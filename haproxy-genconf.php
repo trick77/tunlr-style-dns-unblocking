@@ -175,7 +175,6 @@ class HAProxy_GenConf {
 
     function generate_deadend($mode) {
         $result = $this->format('backend b_deadend_' . $mode, FALSE);
-        $result .= $this->format('log global');
         if ($mode === 'http') {
             $result .= $this->format('mode http');
             $result .= $this->format('option httplog');
@@ -206,7 +205,6 @@ class HAProxy_GenConf {
     function generate_frontend($proxy_name, $mode, $haproxy_bind_ip, $current_dnat_port, $is_catchall) {
         $result = $this->format('frontend f_' . $proxy_name . '_' . $mode, FALSE);
         $result .= $this->format('bind ' . $haproxy_bind_ip . ':' . $current_dnat_port);
-        $result .= $this->format('log global');
 
         if ($mode === 'http') {
             $result .= $this->format('mode http');
@@ -234,7 +232,6 @@ class HAProxy_GenConf {
 
     function generate_backend($proxy_name, $mode, $dest_addr, $port, $server_options, $is_catchall) {
         $result = $this->format('backend b_' . $proxy_name . '_' . $mode, FALSE);
-        $result .= $this->format('log global');
 
         if ($mode === 'http') {
             $result .= $this->format('mode http');
