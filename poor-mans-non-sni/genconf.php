@@ -1,6 +1,6 @@
 <?php
 
-class HAProxy_GenConf {
+class GenConf {
 
     var $INDENT = '  ';
 
@@ -258,7 +258,7 @@ class HAProxy_GenConf {
     }
 }
 
-$g = new HAProxy_GenConf();
+$g = new GenConf();
 $g->run('config.json');
 
 ?>
