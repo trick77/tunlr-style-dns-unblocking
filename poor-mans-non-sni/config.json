@@ -1374,6 +1374,38 @@
       ],
       "catchall": true,
       "enabled": true
+    },
+    {
+      "name": "nbc-akamai-ipad",
+      "dest_addr": "tve_nbc-vh.akamaihd.net",
+      "modes": [
+        {
+          "port": 80,
+          "mode": "http"
+        },
+        {
+          "port": 443,
+          "mode": "https"
+        }
+      ],
+      "catchall": true,
+      "enabled": true
+    },
+    {
+      "name": "cbs-akamai-ipad",
+      "dest_addr": "ipad-streaming.cbs.com",
+      "modes": [
+        {
+          "port": 80,
+          "mode": "http"
+        },
+        {
+          "port": 443,
+          "mode": "https"
+        }
+      ],
+      "catchall": true,
+      "enabled": true
     }
   ]
 }
