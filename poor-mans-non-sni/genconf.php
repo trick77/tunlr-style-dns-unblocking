@@ -76,8 +76,6 @@ class GenConf {
                 }
                 $dnsmasq_content .= $this->generate_dns($proxy->dest_addr, $current_dnat_ip);
                 echo $current_dnat_ip . PHP_EOL;
-
-                $index ++;
             }
         }
 
