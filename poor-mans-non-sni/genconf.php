@@ -4,19 +4,22 @@ class GenConf {
 
     var $INDENT = '  ';
 
-    function run($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $dnsmasq_out_filename = 'dnsmasq-haproxy.conf', $iptables_out_filename = 'iptables-haproxy.conf') {
+    function run($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $dnsmasq_out_filename = 'dnsmasq-haproxy.conf', $iptables_out_filename = 'iptables-haproxy.conf', $netsh_out_filename = 'netsh-haproxy.cmd', $host_txt_out_filename = 'host-haproxy.txt') {
         $content = file_get_contents($json_in_filename);
         $json = json_decode($content);
         $iptables_location = $json->iptables_location;
         $server_options = $json->server_options;
         $haproxy_bind_ip = $json->haproxy_bind_ip;
         $dnsmasq_content = '';
+        $host_txt_content = '';
         $iptables_content = '';
+        $netsh_content = '';
 
         $haproxy_content = $this->generate_global();
         $haproxy_content .= $this->generate_defaults();
 
         $current_dnat_ip = $json->dnat_base_ip;
+        $current_loopback_ip = $json->loopback_base_ip;
         $current_dnat_port = $json->dnat_base_port;
 
         $haproxy_catchall_frontend_content = $this->generate_frontend('catchall', 'http', $haproxy_bind_ip, $current_dnat_port, TRUE);
@@ -46,6 +49,7 @@ class GenConf {
                     }
                 }
                 $dnsmasq_content .= $this->generate_dns($proxy->dest_addr, $current_dnat_ip);
+                $host_txt_content .= $this->generate_host_txt($proxy->dest_addr, $current_loopback_ip);
             }
         }
 
@@ -57,8 +61,10 @@ class GenConf {
             $haproxy_content .= $haproxy_catchall_frontend_ssl_content . PHP_EOL;
             $haproxy_content .= $haproxy_catchall_backend_ssl_content;
             $iptables_content .= $this->generate_iptables('80', $haproxy_bind_ip, $current_dnat_ip, $current_dnat_port, $iptables_location);
+            $netsh_content .= $this->generate_netsh('80', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
             $current_dnat_port++;
             $iptables_content .= $this->generate_iptables('443', $haproxy_bind_ip, $current_dnat_ip, $current_dnat_port, $iptables_location);
+            $netsh_content .= $this->generate_netsh('443', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
             $current_dnat_port++;
             echo $current_dnat_ip . PHP_EOL;
         }
@@ -67,14 +73,17 @@ class GenConf {
         while ($proxy = array_shift($json->proxies)) {
             if ($proxy->enabled && ! $proxy->catchall) {
                 $current_dnat_ip = long2ip(ip2long($current_dnat_ip) + 1);
+                $current_loopback_ip = long2ip(ip2long($current_loopback_ip) + 1);
                 while ($mode = array_shift($proxy->modes)) {
                     $haproxy_content .= $this->generate_frontend($proxy->name, $mode->mode, $haproxy_bind_ip, $current_dnat_port, FALSE);
                     $iptables_content .= $this->generate_iptables($mode->port, $haproxy_bind_ip, $current_dnat_ip, $current_dnat_port,
                         $iptables_location);
+                    $netsh_content .= $this->generate_netsh($mode->port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
                     $haproxy_content .= $this->generate_backend($proxy->name, $mode->mode, $proxy->dest_addr, $mode->port, $server_options, FALSE);
                     $current_dnat_port++;
                 }
                 $dnsmasq_content .= $this->generate_dns($proxy->dest_addr, $current_dnat_ip);
+                $host_txt_content .= $this->generate_host_txt($proxy->dest_addr, $current_loopback_ip);
                 echo $current_dnat_ip . PHP_EOL;
             }
         }
@@ -101,6 +110,12 @@ class GenConf {
 
         file_put_contents($iptables_out_filename, $iptables_content);
         echo 'File generated: ' . $iptables_out_filename . PHP_EOL;
+        
+        file_put_contents($netsh_out_filename, $netsh_content);
+        echo 'File generated: ' . $netsh_out_filename . PHP_EOL;
+        
+        file_put_contents($host_txt_out_filename, $host_txt_content);
+        echo 'File generated: ' . $host_txt_out_filename . PHP_EOL;
     }
 
     function generate_frontend_catchall_entry($dest_addr, $mode) {
@@ -129,6 +144,17 @@ class GenConf {
     function generate_dns($dest_addr, $current_dnat_ip) {
         $result = 'address=/' . $dest_addr . '/' . $current_dnat_ip;
         return $result . PHP_EOL;
+    }
+    
+    function generate_host_txt($dest_addr, $current_loopback_ip) {
+        $result = $current_loopback_ip. ' ' . $dest_addr;
+        return $result . PHP_EOL;
+    }
+
+    function generate_netsh($port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port) {
+        $result = 'netsh interface portproxy add v4tov4 protocol=tcp listenport=' . $port . ' listenaddress=' . $current_loopback_ip . ' connectaddress=' .
+             $haproxy_bind_ip . ' connectport=' . $current_dnat_port . PHP_EOL;
+        return $result;
     }
 
     function generate_iptables($port, $haproxy_bind_ip, $current_dnat_ip, $current_dnat_port, $iptables_location) {
