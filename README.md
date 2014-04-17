@@ -1,7 +1,7 @@
 tunlr-style-dns-unblocking
 ==========================
 
-Since Tunlr.net closed down unexpectedly, I decided to publish my ideas and findings on the subject of DNS unblocking. I used Tunlr for some time when I decided to develop my own, private DNS unblocking solution. I'm using a combination of Dnsmasq and HAProxy. You will have to compile HAProxy on your own if you don't get a version >= 1.5 using yum/apt-get.
+Since Tunlr.net closed down unexpectedly, I decided to publish my ideas and findings on the subject of DNS unblocking. I used Tunlr for some time when I decided to develop my own, private DNS unblocking solution. I'm using a combination of Dnsmasq and HAProxy. You will have to compile HAProxy on your own if you don't get a version >= 1.5 using yum/apt-get. Make sure the JSON-Library is available for PHP.
 
 THIS IS NOT A TUTORIAL!
 
@@ -17,10 +17,13 @@ Requires a U.S. based server (a 128 MB low end VPS is enough) and preferrably a 
 
 In pure-sni mode, you don't have to worry about the dnat_base_ip and dnat_base_port options. Those options are not used, just leave them at their defaults.
 
+For this mode, call the generator like this:
+```php genconf.php pure-sni```
+
 The generator will create two files based on json.config:
 - haproxy.conf
 - dnsmasq-haproxy.conf
-
+ 
 #### non-sni (Advanced Setup)
 
 non-sni mode enables DNS-unblocking for multimedia players (or applications) which can't handle SNI but still using just a single IP address using some netfilter trickery. See here for more information on this mode:
