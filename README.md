@@ -24,6 +24,8 @@ The generator will create two files based on the information in json.config:
 - haproxy.conf
 - dnsmasq-haproxy.conf
  
+I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.50 so you can start with your DNS forwarder setup first and add your own HAProxy server later.
+ 
 #### non-sni (Advanced Setup)
 
 non-sni mode enables DNS-unblocking for multimedia players (or applications) which can't handle SNI but still using just a single IP address using some netfilter trickery. See here for more information on this mode:
