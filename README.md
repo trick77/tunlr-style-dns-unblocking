@@ -9,6 +9,10 @@ The configuration generator (genconf.php) has two modes:
 - pure-sni (Simple Setup)
 - non-sni (Advanced Setup)
 
+Please drop a comment in http://trick77.com/2014/04/17/dns-unblocking-generator-update/ once you've managed to set up your own DNS-unblocking service!
+
+Want to add a service to config.json or found an outdated configuration section? Please send a pull request with the  updated configuration.
+
 #### pure-sni (Simple Setup)
 
 Use this setup if all your multimedia players are SNI-capable.
@@ -24,7 +28,7 @@ The generator will create two files based on the information in json.config:
 - haproxy.conf
 - dnsmasq-haproxy.conf
  
-I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.54 so you can start with your DNS forwarder setup first and add your own HAProxy server later. Please drop a comment in http://trick77.com/2014/04/17/dns-unblocking-generator-update/ once you've managed to set up your own DNS-unblocking service.
+I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.54 so you can start with your DNS forwarder setup first and add your own HAProxy server later. 
  
 #### non-sni (Advanced Setup)
 
