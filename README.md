@@ -23,7 +23,7 @@ The generator will create two files based on json.config:
 
 #### non-sni (Advanced Setup)
 
-non-sni mode enables DNS-unblocking for multimedia players (or applications) which can't handle SNI. See here for more information on this mode:
+non-sni mode enables DNS-unblocking for multimedia players (or applications) which can't handle SNI but still using just a single IP address using some netfilter trickery. See here for more information on this mode:
 http://trick77.com/2014/04/02/netflix-dns-unblocking-without-sni-xbox-360-ps3-samsung-tv/
 
 See here for additional information: 
