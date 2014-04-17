@@ -24,7 +24,7 @@ The generator will create two files based on the information in json.config:
 - haproxy.conf
 - dnsmasq-haproxy.conf
  
-I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.50 so you can start with your DNS forwarder setup first and add your own HAProxy server later.
+I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.54 so you can start with your DNS forwarder setup first and add your own HAProxy server later.
  
 #### non-sni (Advanced Setup)
 
