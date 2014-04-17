@@ -2,7 +2,7 @@
   "iptables_location": "/sbin/iptables",
   "haproxy_bind_ip": "23.227.162.125",
   "dnat_base_ip": "192.168.178.51",
-  "loopback_ip": "127.0.0.51",
+  "loopback_base_ip": "127.0.0.51",
   "dnat_base_port": 27200,
   "server_options": "check inter 10s fastinter 2s downinter 2s fall 1800",
   "stats": {
