@@ -20,7 +20,7 @@ In pure-sni mode, you don't have to worry about the dnat_base_ip and dnat_base_p
 For this mode, call the generator like this:
 ```php genconf.php pure-sni```
 
-The generator will create two files based on json.config:
+The generator will create two files based on the information in json.config:
 - haproxy.conf
 - dnsmasq-haproxy.conf
  
