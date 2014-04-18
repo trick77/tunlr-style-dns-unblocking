@@ -35,6 +35,26 @@ I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.54 so you can 
 non-sni mode enables DNS-unblocking for multimedia players (or applications) which can't handle SNI but still using just a single IP address using some netfilter trickery. See here for more information on this mode:
 http://trick77.com/2014/04/02/netflix-dns-unblocking-without-sni-xbox-360-ps3-samsung-tv/
 
+#### local (Advanced Setup)
+
+local mode enables DNS-unblocking on a single device which can't handle SNI but still using just a single IP address and without using another server on the network.
+The generator will create four files based on the information in json.config:
+- haproxy.conf (for the remote server)
+- netsh-haproxy.cmd (for Windows)
+- rinetd-haproxy.conf (for Linux)
+- hosts-haproxy.txt (for Linux/Windows)
+
+For Windows:
+- Run notepad as administrator and open %SystemRoot%\system32\drivers\etc\hosts (usually c:\windows\system32\drivers\etc\hosts), copy the contents of hosts-haproxy.txt
+- Run netsh-haproxy.cmd as administrator
+
+- To reset: delete contents of %SystemRoot%\system32\drivers\etc\hosts, run as administrator 'netsh interface portproxy reset'
+For Linux:
+- Run 'sudo tee -a /etc/hosts < hosts-haproxy.txt' (or append hots-haproxy.txt to /etc/hosts)
+- Run 'sudo cp rinetd-haproxy.conf /etc/rinetd.conf && sudo service rinetd start'
+
+- To reset: 'sudo sed -i '/### GENERATED/d' /etc/hosts' and 'sudo service rinetd stop && sudo rm /etc/rinetd.conf'
+
 See here for additional information: 
 
 - http://trick77.com/2014/03/01/tunlr-style-dns-unblocking-pandora-netflix-hulu-et-al/

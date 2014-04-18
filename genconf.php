@@ -174,6 +174,106 @@ class GenConf {
         echo 'File generated: ' . $iptables_out_filename . PHP_EOL;
     }
 
+    function create_local_non_sni_config($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $netsh_out_filename = 'netsh-haproxy.cmd', $hosts_out_filename = 'hosts-haproxy.txt', $rinetd_out_filename = 'rinetd-haproxy.conf') {
+        $content = file_get_contents($json_in_filename);
+        $json = json_decode($content);
+        $iptables_location = $json->iptables_location;
+        $server_options = $json->server_options;
+        $haproxy_bind_ip = $json->haproxy_bind_ip;
+        $netsh_content = '';
+        $rinetd_content = '';
+        $hosts = array();
+
+        $haproxy_content = $this->generate_global();
+        $haproxy_content .= $this->generate_defaults();
+
+        $current_loopback_ip = $json->loopback_base_ip;
+        $current_dnat_port = $json->dnat_base_port;
+
+        $haproxy_catchall_frontend_content = $this->generate_frontend('catchall', 'http', $haproxy_bind_ip, $current_dnat_port, TRUE);
+        $haproxy_catchall_backend_content = $this->generate_backend('catchall', 'http', NULL, NULL, NULL, TRUE);
+
+        $haproxy_catchall_frontend_ssl_content = $this->generate_frontend('catchall', 'https', $haproxy_bind_ip, $current_dnat_port + 1, TRUE);
+        $haproxy_catchall_backend_ssl_content = $this->generate_backend('catchall', 'https', NULL, NULL, NULL, TRUE);
+
+        if ($json->stats->enabled) {
+            $haproxy_content .= $this->generate_stats($json->stats, $haproxy_bind_ip);
+        }
+
+        $has_catchall = FALSE;
+        while ($proxy = array_shift($json->proxies)) {
+            if ($proxy->enabled && $proxy->catchall) {
+                while ($mode = array_shift($proxy->modes)) {
+                    $has_catchall = TRUE;
+                    if ($mode->mode === 'http') {
+                        $haproxy_catchall_frontend_content .= $this->generate_frontend_catchall_entry($proxy->dest_addr, $mode->mode);
+                        $haproxy_catchall_backend_content .= $this->generate_backend_catchall_entry($proxy->dest_addr, $mode->mode, $mode->port,
+                            $server_options);
+                    }
+                    else if ($mode->mode === 'https') {
+                        $haproxy_catchall_frontend_ssl_content .= $this->generate_frontend_catchall_entry($proxy->dest_addr, $mode->mode);
+                        $haproxy_catchall_backend_ssl_content .= $this->generate_backend_catchall_entry($proxy->dest_addr, $mode->mode, $mode->port,
+                            $server_options);
+                    }
+                }
+                $this->add_hosts($hosts, $proxy->dest_addr, $current_loopback_ip);
+            }
+        }
+
+        if ($has_catchall) {
+            $haproxy_content .= $haproxy_catchall_frontend_content . PHP_EOL;
+            $haproxy_content .= $haproxy_catchall_backend_content;
+            $haproxy_content .= $haproxy_catchall_frontend_ssl_content . PHP_EOL;
+            $haproxy_content .= $haproxy_catchall_backend_ssl_content;
+            $netsh_content .= $this->generate_netsh('80', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+            $rinetd_content .= $this->generate_rinetd('80', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+            $current_dnat_port++;
+            $netsh_content .= $this->generate_netsh('443', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+            $rinetd_content .= $this->generate_rinetd('443', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+            $current_dnat_port++;
+        }
+
+        $json = json_decode($content);
+        while ($proxy = array_shift($json->proxies)) {
+            if ($proxy->enabled && ! $proxy->catchall) {
+                $current_loopback_ip = long2ip(ip2long($current_loopback_ip) + 1);
+                while ($mode = array_shift($proxy->modes)) {
+                    $haproxy_content .= $this->generate_frontend($proxy->name, $mode->mode, $haproxy_bind_ip, $current_dnat_port, FALSE);
+                    $netsh_content .= $this->generate_netsh($mode->port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+                    $rinetd_content .= $this->generate_rinetd($mode->port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+                    $haproxy_content .= $this->generate_backend($proxy->name, $mode->mode, $proxy->dest_addr, $mode->port, $server_options, FALSE);
+                    $current_dnat_port++;
+                }
+                $this->add_hosts($hosts, $proxy->dest_addr, $current_loopback_ip);
+            }
+        }
+
+        if ($has_catchall) {
+            $haproxy_content .= $this->generate_deadend('http');
+            $haproxy_content .= $this->generate_deadend('https');
+        }
+
+        echo 'If you are using an inbound firewall on ' . $haproxy_bind_ip . ':' . PHP_EOL;
+        if ($json->stats->enabled) {
+            echo $iptables_location . ' -A INPUT -p tcp -m state --state NEW -d ' . $haproxy_bind_ip . ' --dport ' . $json->stats->port . ' -j ACCEPT' . PHP_EOL;
+        }
+        echo $iptables_location . ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' . $haproxy_bind_ip . ' --dports ' . $json->dnat_base_port . ':' .
+             --$current_dnat_port . ' -j ACCEPT' . PHP_EOL;
+        echo PHP_EOL;
+
+        file_put_contents($haproxy_out_filename, $haproxy_content);
+        echo 'File generated: ' . $haproxy_out_filename . PHP_EOL;
+
+        file_put_contents($hosts_out_filename,  $this->generate_hosts_content($hosts));
+        echo 'File generated: ' . $hosts_out_filename . PHP_EOL;
+
+        file_put_contents($netsh_out_filename, $netsh_content);
+        echo 'File generated: ' . $netsh_out_filename . PHP_EOL;
+
+        file_put_contents($rinetd_out_filename, $rinetd_content);
+        echo 'File generated: ' . $rinetd_out_filename . PHP_EOL;
+    }
+
     function generate_frontend_catchall_entry($dest_addr, $mode) {
         if ($mode === 'http') {
             return $this->format('use_backend b_catchall_' . $mode . ' if { hdr(host) -i ' . $dest_addr . ' }');
@@ -200,6 +300,33 @@ class GenConf {
     function generate_dns($dest_addr, $current_dnat_ip) {
         $result = 'address=/' . $dest_addr . '/' . $current_dnat_ip;
         return $result . PHP_EOL;
+    }
+
+    function add_hosts(&$hosts, $dest_addr, $current_loopback_ip) {
+	if(isset($hosts[$current_loopback_ip])) {
+		array_push($hosts[$current_loopback_ip], $dest_addr);
+	} else {
+		$hosts[$current_loopback_ip] = [$dest_addr];
+	}
+    }
+    
+    function generate_netsh($port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port) {
+        $result = 'netsh interface portproxy add v4tov4 protocol=tcp listenport=' . $port . ' listenaddress=' . $current_loopback_ip . ' connectaddress=' .
+             $haproxy_bind_ip . ' connectport=' . $current_dnat_port . PHP_EOL;
+        return $result;
+    }
+
+    function generate_rinetd($port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port) {
+        $result = $current_loopback_ip . ' ' . $port . ' ' . $haproxy_bind_ip . ' ' . $current_dnat_port . PHP_EOL;
+        return $result;
+    }
+
+    function generate_hosts_content(&$hosts) {
+        $result = '';
+        foreach ($hosts as $ip => $list) {
+            $result .= $ip . ' ' . implode(' ',$list) . ' ### GENERATED ' .PHP_EOL;
+        }
+        return $result;
     }
 
     function generate_iptables($port, $haproxy_bind_ip, $current_dnat_ip, $current_dnat_port, $iptables_location) {
@@ -327,18 +454,20 @@ class GenConf {
     }
 }
 
-$arg1 = $argv[1];
-if ($arg1 != NULL) {
+if ($argc >= 2) {
     $g = new GenConf();
-    $arg1 = strtolower($arg1);
+    $arg1 = strtolower($argv[1]);
     if ($arg1 === 'non-sni') {
         $g->create_non_sni_config('config.json');
-    }
-    else if ($arg1 === 'pure-sni') {
+    } else if ($arg1 === 'local') {
+        $g->create_local_non_sni_config('config.json');
+    } else if ($arg1 === 'pure-sni') {
         $g->create_pure_sni_config('config.json');
-    }
+    } else {
+    	die("Missing/wrong argument, use pure-sni (simple setup), non-sni (advanced setup),  local (advanced setup)" . PHP_EOL);
+    } 
 }
 else {
-    die("Missing/wrong argument, use pure-sni (simple setup) or non-sni (advanced setup)" . PHP_EOL);
+    die("Missing/wrong argument, use pure-sni (simple setup), non-sni (advanced setup),  local (advanced setup)" . PHP_EOL);
 }
 ?>
