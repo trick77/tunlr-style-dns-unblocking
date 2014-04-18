@@ -75,7 +75,7 @@ class GenConf {
 
     }
 
-    function create_non_sni_config($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $dnsmasq_out_filename = 'dnsmasq-haproxy.conf', $iptables_out_filename = 'iptables-haproxy.conf') {
+    function create_non_sni_config($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $dnsmasq_out_filename = 'dnsmasq-haproxy.conf', $iptables_out_filename = 'iptables-haproxy.sh') {
         $content = file_get_contents($json_in_filename);
         $json = json_decode($content);
         $iptables_location = $json->iptables_location;
