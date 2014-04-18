@@ -4,22 +4,90 @@ class GenConf {
 
     var $INDENT = '  ';
 
-    function run($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $dnsmasq_out_filename = 'dnsmasq-haproxy.conf', $iptables_out_filename = 'iptables-haproxy.conf', $netsh_out_filename = 'netsh-haproxy.cmd', $host_txt_out_filename = 'host-haproxy.txt') {
+    function create_pure_sni_config($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $dnsmasq_out_filename = 'dnsmasq-haproxy.conf') {
+        $content = file_get_contents($json_in_filename);
+        $json = json_decode($content);
+        $server_options = $json->server_options;
+        $haproxy_bind_ip = $json->haproxy_bind_ip;
+        $dnsmasq_content = '';
+
+        $haproxy_content = $this->generate_global();
+        $haproxy_content .= $this->generate_defaults();
+
+        $haproxy_catchall_frontend_content = $this->generate_frontend('catchall', 'http', $haproxy_bind_ip, 80, TRUE);
+        $haproxy_catchall_backend_content = $this->generate_backend('catchall', 'http', NULL, NULL, NULL, TRUE);
+
+        $haproxy_catchall_frontend_ssl_content = $this->generate_frontend('catchall', 'https', $haproxy_bind_ip, 443, TRUE);
+        $haproxy_catchall_backend_ssl_content = $this->generate_backend('catchall', 'https', NULL, NULL, NULL, TRUE);
+
+        if ($json->stats->enabled) {
+            $haproxy_content .= $this->generate_stats($json->stats, $haproxy_bind_ip);
+        }
+
+        while ($proxy = array_shift($json->proxies)) {
+            if ($proxy->enabled) {
+                while ($mode = array_shift($proxy->modes)) {
+                    if ($mode->mode === 'http') {
+                        $haproxy_catchall_frontend_content .= $this->generate_frontend_catchall_entry($proxy->dest_addr, $mode->mode);
+                        $haproxy_catchall_backend_content .= $this->generate_backend_catchall_entry($proxy->dest_addr, $mode->mode, $mode->port,
+                            $server_options);
+                    }
+                    else if ($mode->mode === 'https') {
+                        $haproxy_catchall_frontend_ssl_content .= $this->generate_frontend_catchall_entry($proxy->dest_addr, $mode->mode);
+                        $haproxy_catchall_backend_ssl_content .= $this->generate_backend_catchall_entry($proxy->dest_addr, $mode->mode, $mode->port,
+                            $server_options);
+                    }
+                }
+                $dnsmasq_content .= $this->generate_dns($proxy->dest_addr, $haproxy_bind_ip);
+            }
+        }
+
+        $haproxy_content .= $haproxy_catchall_frontend_content . PHP_EOL;
+        $haproxy_content .= $haproxy_catchall_backend_content;
+        $haproxy_content .= $haproxy_catchall_frontend_ssl_content . PHP_EOL;
+        $haproxy_content .= $haproxy_catchall_backend_ssl_content;
+        $iptables_content .= $this->generate_iptables('80', $haproxy_bind_ip, $current_dnat_ip, $current_dnat_port, $iptables_location);
+
+        $haproxy_content .= $this->generate_deadend('http');
+        $haproxy_content .= $this->generate_deadend('https');
+
+        echo PHP_EOL;
+        echo 'If you are using an inbound firewall on ' . $haproxy_bind_ip . ':' . PHP_EOL;
+        if ($json->stats->enabled) {
+            echo $iptables_location . ' -A INPUT -p tcp -m state --state NEW -d ' . $haproxy_bind_ip . ' --dport ' . $json->stats->port . ' -j ACCEPT' . PHP_EOL;
+        }
+        echo $iptables_location . ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' . $haproxy_bind_ip . ' --dports ' . 80 . ':' .
+             443 . ' -j ACCEPT' . PHP_EOL;
+        echo PHP_EOL;
+
+        file_put_contents($haproxy_out_filename, $haproxy_content);
+        echo 'File generated: ' . $haproxy_out_filename . PHP_EOL;
+
+        file_put_contents($dnsmasq_out_filename, $dnsmasq_content);
+        echo 'File generated: ' . $dnsmasq_out_filename . PHP_EOL;
+
+        echo PHP_EOL;
+        echo '***********************************************************************************************' . PHP_EOL;
+        echo 'Caution: it\'s not recommended but it\'s possible to run a (recursive) DNS forwarder on your' . PHP_EOL;
+        echo 'remote server ' . $haproxy_bind_ip . '. If you leave the DNS port wide open to everyone,' . PHP_EOL;
+        echo 'your server will get terminated sooner or later because of abuse (DDoS amplification attacks).' . PHP_EOL;
+        echo '***********************************************************************************************' . PHP_EOL;
+
+    }
+
+    function create_non_sni_config($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $dnsmasq_out_filename = 'dnsmasq-haproxy.conf', $iptables_out_filename = 'iptables-haproxy.conf') {
         $content = file_get_contents($json_in_filename);
         $json = json_decode($content);
         $iptables_location = $json->iptables_location;
         $server_options = $json->server_options;
         $haproxy_bind_ip = $json->haproxy_bind_ip;
         $dnsmasq_content = '';
-        $host_txt_content = '';
         $iptables_content = '';
-        $netsh_content = '';
 
         $haproxy_content = $this->generate_global();
         $haproxy_content .= $this->generate_defaults();
 
         $current_dnat_ip = $json->dnat_base_ip;
-        $current_loopback_ip = $json->loopback_base_ip;
         $current_dnat_port = $json->dnat_base_port;
 
         $haproxy_catchall_frontend_content = $this->generate_frontend('catchall', 'http', $haproxy_bind_ip, $current_dnat_port, TRUE);
@@ -49,7 +117,6 @@ class GenConf {
                     }
                 }
                 $dnsmasq_content .= $this->generate_dns($proxy->dest_addr, $current_dnat_ip);
-                $host_txt_content .= $this->generate_host_txt($proxy->dest_addr, $current_loopback_ip);
             }
         }
 
@@ -61,10 +128,8 @@ class GenConf {
             $haproxy_content .= $haproxy_catchall_frontend_ssl_content . PHP_EOL;
             $haproxy_content .= $haproxy_catchall_backend_ssl_content;
             $iptables_content .= $this->generate_iptables('80', $haproxy_bind_ip, $current_dnat_ip, $current_dnat_port, $iptables_location);
-            $netsh_content .= $this->generate_netsh('80', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
             $current_dnat_port++;
             $iptables_content .= $this->generate_iptables('443', $haproxy_bind_ip, $current_dnat_ip, $current_dnat_port, $iptables_location);
-            $netsh_content .= $this->generate_netsh('443', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
             $current_dnat_port++;
             echo $current_dnat_ip . PHP_EOL;
         }
@@ -73,17 +138,14 @@ class GenConf {
         while ($proxy = array_shift($json->proxies)) {
             if ($proxy->enabled && ! $proxy->catchall) {
                 $current_dnat_ip = long2ip(ip2long($current_dnat_ip) + 1);
-                $current_loopback_ip = long2ip(ip2long($current_loopback_ip) + 1);
                 while ($mode = array_shift($proxy->modes)) {
                     $haproxy_content .= $this->generate_frontend($proxy->name, $mode->mode, $haproxy_bind_ip, $current_dnat_port, FALSE);
                     $iptables_content .= $this->generate_iptables($mode->port, $haproxy_bind_ip, $current_dnat_ip, $current_dnat_port,
                         $iptables_location);
-                    $netsh_content .= $this->generate_netsh($mode->port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
                     $haproxy_content .= $this->generate_backend($proxy->name, $mode->mode, $proxy->dest_addr, $mode->port, $server_options, FALSE);
                     $current_dnat_port++;
                 }
                 $dnsmasq_content .= $this->generate_dns($proxy->dest_addr, $current_dnat_ip);
-                $host_txt_content .= $this->generate_host_txt($proxy->dest_addr, $current_loopback_ip);
                 echo $current_dnat_ip . PHP_EOL;
             }
         }
@@ -110,12 +172,99 @@ class GenConf {
 
         file_put_contents($iptables_out_filename, $iptables_content);
         echo 'File generated: ' . $iptables_out_filename . PHP_EOL;
-        
+    }
+
+    function create_local_non_sni_config($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $netsh_out_filename = 'netsh-haproxy.cmd', $host_txt_out_filename = 'host-haproxy.txt') {
+        $content = file_get_contents($json_in_filename);
+        $json = json_decode($content);
+        $iptables_location = $json->iptables_location;
+        $server_options = $json->server_options;
+        $haproxy_bind_ip = $json->haproxy_bind_ip;
+        $netsh_content = '';
+        $host_content = '';
+
+        $haproxy_content = $this->generate_global();
+        $haproxy_content .= $this->generate_defaults();
+
+        $current_loopback_ip = $json->loopback_base_ip;
+        $current_dnat_port = $json->dnat_base_port;
+
+        $haproxy_catchall_frontend_content = $this->generate_frontend('catchall', 'http', $haproxy_bind_ip, $current_dnat_port, TRUE);
+        $haproxy_catchall_backend_content = $this->generate_backend('catchall', 'http', NULL, NULL, NULL, TRUE);
+
+        $haproxy_catchall_frontend_ssl_content = $this->generate_frontend('catchall', 'https', $haproxy_bind_ip, $current_dnat_port + 1, TRUE);
+        $haproxy_catchall_backend_ssl_content = $this->generate_backend('catchall', 'https', NULL, NULL, NULL, TRUE);
+
+        if ($json->stats->enabled) {
+            $haproxy_content .= $this->generate_stats($json->stats, $haproxy_bind_ip);
+        }
+
+        $has_catchall = FALSE;
+        while ($proxy = array_shift($json->proxies)) {
+            if ($proxy->enabled && $proxy->catchall) {
+                while ($mode = array_shift($proxy->modes)) {
+                    $has_catchall = TRUE;
+                    if ($mode->mode === 'http') {
+                        $haproxy_catchall_frontend_content .= $this->generate_frontend_catchall_entry($proxy->dest_addr, $mode->mode);
+                        $haproxy_catchall_backend_content .= $this->generate_backend_catchall_entry($proxy->dest_addr, $mode->mode, $mode->port,
+                            $server_options);
+                    }
+                    else if ($mode->mode === 'https') {
+                        $haproxy_catchall_frontend_ssl_content .= $this->generate_frontend_catchall_entry($proxy->dest_addr, $mode->mode);
+                        $haproxy_catchall_backend_ssl_content .= $this->generate_backend_catchall_entry($proxy->dest_addr, $mode->mode, $mode->port,
+                            $server_options);
+                    }
+                }
+                $host_content .= $this->generate_host($proxy->dest_addr, $current_loopback_ip);
+            }
+        }
+
+        if ($has_catchall) {
+            $haproxy_content .= $haproxy_catchall_frontend_content . PHP_EOL;
+            $haproxy_content .= $haproxy_catchall_backend_content;
+            $haproxy_content .= $haproxy_catchall_frontend_ssl_content . PHP_EOL;
+            $haproxy_content .= $haproxy_catchall_backend_ssl_content;
+            $netsh_content .= $this->generate_netsh('80', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+            $current_dnat_port++;
+            $netsh_content .= $this->generate_netsh('443', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+            $current_dnat_port++;
+        }
+
+        $json = json_decode($content);
+        while ($proxy = array_shift($json->proxies)) {
+            if ($proxy->enabled && ! $proxy->catchall) {
+                $current_loopback_ip = long2ip(ip2long($current_loopback_ip) + 1);
+                while ($mode = array_shift($proxy->modes)) {
+                    $haproxy_content .= $this->generate_frontend($proxy->name, $mode->mode, $haproxy_bind_ip, $current_dnat_port, FALSE);
+                    $netsh_content .= $this->generate_netsh($mode->port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+                    $haproxy_content .= $this->generate_backend($proxy->name, $mode->mode, $proxy->dest_addr, $mode->port, $server_options, FALSE);
+                    $current_dnat_port++;
+                }
+                $host_content .= $this->generate_host($proxy->dest_addr, $current_loopback_ip);
+            }
+        }
+
+        if ($has_catchall) {
+            $haproxy_content .= $this->generate_deadend('http');
+            $haproxy_content .= $this->generate_deadend('https');
+        }
+
+        echo 'If you are using an inbound firewall on ' . $haproxy_bind_ip . ':' . PHP_EOL;
+        if ($json->stats->enabled) {
+            echo $iptables_location . ' -A INPUT -p tcp -m state --state NEW -d ' . $haproxy_bind_ip . ' --dport ' . $json->stats->port . ' -j ACCEPT' . PHP_EOL;
+        }
+        echo $iptables_location . ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' . $haproxy_bind_ip . ' --dports ' . $json->dnat_base_port . ':' .
+             --$current_dnat_port . ' -j ACCEPT' . PHP_EOL;
+        echo PHP_EOL;
+
+        file_put_contents($haproxy_out_filename, $haproxy_content);
+        echo 'File generated: ' . $haproxy_out_filename . PHP_EOL;
+
+        file_put_contents($host_txt_out_filename, $host_content);
+        echo 'File generated: ' . $host_txt_out_filename . PHP_EOL;
+
         file_put_contents($netsh_out_filename, $netsh_content);
         echo 'File generated: ' . $netsh_out_filename . PHP_EOL;
-        
-        file_put_contents($host_txt_out_filename, $host_txt_content);
-        echo 'File generated: ' . $host_txt_out_filename . PHP_EOL;
     }
 
     function generate_frontend_catchall_entry($dest_addr, $mode) {
@@ -145,12 +294,12 @@ class GenConf {
         $result = 'address=/' . $dest_addr . '/' . $current_dnat_ip;
         return $result . PHP_EOL;
     }
-    
-    function generate_host_txt($dest_addr, $current_loopback_ip) {
-        $result = $current_loopback_ip. ' ' . $dest_addr;
+
+    function generate_host($dest_addr, $current_loopback_ip) {
+        $result = $current_loopback_ip . ' ' . $dest_addr;
         return $result . PHP_EOL;
     }
-
+    
     function generate_netsh($port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port) {
         $result = 'netsh interface portproxy add v4tov4 protocol=tcp listenport=' . $port . ' listenaddress=' . $current_loopback_ip . ' connectaddress=' .
              $haproxy_bind_ip . ' connectport=' . $current_dnat_port . PHP_EOL;
@@ -282,7 +431,21 @@ class GenConf {
     }
 }
 
-$g = new GenConf();
-$g->run('config.json');
-
+$arg1 = $argv[1];
+if ($arg1 != NULL) {
+    $g = new GenConf();
+    $arg1 = strtolower($arg1);
+    if ($arg1 === 'non-sni') {
+        $g->create_non_sni_config('config.json');
+    }
+    else if ($arg1 === 'local') {
+        $g->create_local_non_sni_config('config.json');
+    }
+    else if ($arg1 === 'pure-sni') {
+        $g->create_pure_sni_config('config.json');
+    }
+}
+else {
+    die("Missing/wrong argument, use pure-sni (simple setup), non-sni (advanced setup),  local (advanced setup)" . PHP_EOL);
+}
 ?>

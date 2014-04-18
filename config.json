@@ -1,6 +1,6 @@
 {
   "iptables_location": "/sbin/iptables",
-  "haproxy_bind_ip": "23.227.162.125",
+  "haproxy_bind_ip": "208.110.82.54",
   "dnat_base_ip": "192.168.178.51",
   "loopback_base_ip": "127.0.0.51",
   "dnat_base_port": 27200,
@@ -483,10 +483,6 @@
         {
           "port": 80,
           "mode": "http"
-        },
-        {
-          "port": 443,
-          "mode": "https"
         }
       ],
       "catchall": false,
