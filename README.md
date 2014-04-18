@@ -5,7 +5,7 @@ Since Tunlr.net closed down unexpectedly, I decided to publish my ideas and find
 
 THIS IS NOT A TUTORIAL!
 
-The configuration generator (genconf.php) has two modes:
+The configuration generator (genconf.php) offers three different modes:
 - pure-sni (Simple Setup)
 - non-sni (Advanced Setup)
 - local (Advanced Setup)
