@@ -174,14 +174,15 @@ class GenConf {
         echo 'File generated: ' . $iptables_out_filename . PHP_EOL;
     }
 
-    function create_local_non_sni_config($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $netsh_out_filename = 'netsh-haproxy.cmd', $host_txt_out_filename = 'host-haproxy.txt') {
+    function create_local_non_sni_config($json_in_filename, $haproxy_out_filename = 'haproxy.conf', $netsh_out_filename = 'netsh-haproxy.cmd', $hosts_out_filename = 'hosts-haproxy.txt', $rinetd_out_filename = 'rinetd-haproxy.conf') {
         $content = file_get_contents($json_in_filename);
         $json = json_decode($content);
         $iptables_location = $json->iptables_location;
         $server_options = $json->server_options;
         $haproxy_bind_ip = $json->haproxy_bind_ip;
         $netsh_content = '';
-        $host_content = '';
+        $rinetd_content = '';
+        $hosts = array();
 
         $haproxy_content = $this->generate_global();
         $haproxy_content .= $this->generate_defaults();
@@ -215,7 +216,7 @@ class GenConf {
                             $server_options);
                     }
                 }
-                $host_content .= $this->generate_host($proxy->dest_addr, $current_loopback_ip);
+                $this->add_hosts($hosts, $proxy->dest_addr, $current_loopback_ip);
             }
         }
 
@@ -225,8 +226,10 @@ class GenConf {
             $haproxy_content .= $haproxy_catchall_frontend_ssl_content . PHP_EOL;
             $haproxy_content .= $haproxy_catchall_backend_ssl_content;
             $netsh_content .= $this->generate_netsh('80', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+            $rinetd_content .= $this->generate_rinetd('80', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
             $current_dnat_port++;
             $netsh_content .= $this->generate_netsh('443', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+            $rinetd_content .= $this->generate_rinetd('443', $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
             $current_dnat_port++;
         }
 
@@ -237,10 +240,11 @@ class GenConf {
                 while ($mode = array_shift($proxy->modes)) {
                     $haproxy_content .= $this->generate_frontend($proxy->name, $mode->mode, $haproxy_bind_ip, $current_dnat_port, FALSE);
                     $netsh_content .= $this->generate_netsh($mode->port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
+                    $rinetd_content .= $this->generate_rinetd($mode->port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port);
                     $haproxy_content .= $this->generate_backend($proxy->name, $mode->mode, $proxy->dest_addr, $mode->port, $server_options, FALSE);
                     $current_dnat_port++;
                 }
-                $host_content .= $this->generate_host($proxy->dest_addr, $current_loopback_ip);
+                $this->add_hosts($hosts, $proxy->dest_addr, $current_loopback_ip);
             }
         }
 
@@ -260,11 +264,14 @@ class GenConf {
         file_put_contents($haproxy_out_filename, $haproxy_content);
         echo 'File generated: ' . $haproxy_out_filename . PHP_EOL;
 
-        file_put_contents($host_txt_out_filename, $host_content);
-        echo 'File generated: ' . $host_txt_out_filename . PHP_EOL;
+        file_put_contents($hosts_out_filename,  $this->generate_hosts_content($hosts));
+        echo 'File generated: ' . $hosts_out_filename . PHP_EOL;
 
         file_put_contents($netsh_out_filename, $netsh_content);
         echo 'File generated: ' . $netsh_out_filename . PHP_EOL;
+
+        file_put_contents($rinetd_out_filename, $rinetd_content);
+        echo 'File generated: ' . $rinetd_out_filename . PHP_EOL;
     }
 
     function generate_frontend_catchall_entry($dest_addr, $mode) {
@@ -295,14 +302,30 @@ class GenConf {
         return $result . PHP_EOL;
     }
 
-    function generate_host($dest_addr, $current_loopback_ip) {
-        $result = $current_loopback_ip . ' ' . $dest_addr;
-        return $result . PHP_EOL;
+    function add_hosts(&$hosts, $dest_addr, $current_loopback_ip) {
+	if(isset($hosts[$current_loopback_ip])) {
+		array_push($hosts[$current_loopback_ip], $dest_addr);
+	} else {
+		$hosts[$current_loopback_ip] = [$dest_addr];
+	}
     }
     
     function generate_netsh($port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port) {
         $result = 'netsh interface portproxy add v4tov4 protocol=tcp listenport=' . $port . ' listenaddress=' . $current_loopback_ip . ' connectaddress=' .
              $haproxy_bind_ip . ' connectport=' . $current_dnat_port . PHP_EOL;
+        return $result;
+    }
+
+    function generate_rinetd($port, $haproxy_bind_ip, $current_loopback_ip, $current_dnat_port) {
+        $result = $current_loopback_ip . ' ' . $port . ' ' . $haproxy_bind_ip . ' ' . $current_dnat_port . PHP_EOL;
+        return $result;
+    }
+
+    function generate_hosts_content(&$hosts) {
+        $result = '';
+        foreach ($hosts as $ip => $list) {
+            $result .= $ip . ' ' . implode(' ',$list) . ' ### GENERATED ' .PHP_EOL;
+        }
         return $result;
     }
 
@@ -431,19 +454,18 @@ class GenConf {
     }
 }
 
-$arg1 = $argv[1];
-if ($arg1 != NULL) {
+if ($argc >= 2) {
     $g = new GenConf();
-    $arg1 = strtolower($arg1);
+    $arg1 = strtolower($argv[1]);
     if ($arg1 === 'non-sni') {
         $g->create_non_sni_config('config.json');
-    }
-    else if ($arg1 === 'local') {
+    } else if ($arg1 === 'local') {
         $g->create_local_non_sni_config('config.json');
-    }
-    else if ($arg1 === 'pure-sni') {
+    } else if ($arg1 === 'pure-sni') {
         $g->create_pure_sni_config('config.json');
-    }
+    } else {
+    	die("Missing/wrong argument, use pure-sni (simple setup), non-sni (advanced setup),  local (advanced setup)" . PHP_EOL);
+    } 
 }
 else {
     die("Missing/wrong argument, use pure-sni (simple setup), non-sni (advanced setup),  local (advanced setup)" . PHP_EOL);
