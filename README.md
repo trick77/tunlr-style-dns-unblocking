@@ -15,6 +15,7 @@ See here for additional information:
 - http://trick77.com/2014/03/01/tunlr-style-dns-unblocking-pandora-netflix-hulu-et-al/
 - http://trick77.com/2014/03/02/dns-unblocking-using-dnsmasq-haproxy/
 
+I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.54 so you can start with your DNS forwarder setup first and add your own HAProxy server later. This server supports simple-mode only.
 Here's a tester which may help you while deploying your own DNS unblocking solution:
 http://trick77.com/dns-unblocking-setup-tester/
 
@@ -37,8 +38,6 @@ The generator will create two files based on the information in json.config:
 - haproxy.conf
 - dnsmasq-haproxy.conf
  
-I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.54 so you can start with your DNS forwarder setup first and add your own HAProxy server later. 
-
 #### non-sni (Advanced Setup)
 
 non-sni mode enables DNS-unblocking for multimedia players (or applications) which can't handle SNI but still using just a single IP address using some netfilter trickery. See here for more information on this mode:
