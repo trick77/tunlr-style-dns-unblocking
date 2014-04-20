@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * DISCLAIMER: I can't code in PHP, I know the code is a mess.
+ */
 class GenConf {
 
     var $INDENT = '  ';
