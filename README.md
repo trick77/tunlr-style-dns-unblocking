@@ -15,6 +15,9 @@ See here for additional information:
 - http://trick77.com/2014/03/01/tunlr-style-dns-unblocking-pandora-netflix-hulu-et-al/
 - http://trick77.com/2014/03/02/dns-unblocking-using-dnsmasq-haproxy/
 
+Here's a tester which may help you while deploying your own DNS unblocking solution:
+http://trick77.com/dns-unblocking-setup-tester/
+
 Please drop a comment in http://trick77.com/2014/04/17/dns-unblocking-generator-update/ once you've managed to set up your own DNS-unblocking service!
 
 Want to add a service to config.json or found an outdated configuration section? Please send a pull request with the  updated configuration.
