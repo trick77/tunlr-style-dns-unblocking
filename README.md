@@ -44,6 +44,12 @@ I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.54 so you can 
 non-sni mode enables DNS-unblocking for multimedia players (or applications) which can't handle SNI but still using just a single IP address using some netfilter trickery. See here for more information on this mode:
 http://trick77.com/2014/04/02/netflix-dns-unblocking-without-sni-xbox-360-ps3-samsung-tv/
 
+Non-conclusive list of devices which don't understand SNI:
+- Xbox 360 
+- PS3
+- All Sony TVs and Blu Ray players 
+- Older Samsung TVs
+
 #### local (Advanced Setup)
 
 local mode enables DNS-unblocking on a single device which can't handle SNI but still using just a single IP address and without using another server on the network.
