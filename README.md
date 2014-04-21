@@ -1,7 +1,7 @@
 tunlr-style-dns-unblocking
 ==========================
 
-Since Tunlr.net closed down unexpectedly, I decided to publish my ideas and findings on the subject of DNS unblocking. I used Tunlr for some time when I decided to develop my own, private DNS unblocking solution. I'm using a combination of Dnsmasq and HAProxy. You will have to compile HAProxy on your own if you don't get a version >= 1.5 using yum/apt-get. Make sure the JSON-Library is available for PHP.
+Since Tunlr.net closed down unexpectedly, I decided to publish my ideas and findings on the subject of DNS unblocking. I used Tunlr for some time when I decided to develop my own, private DNS unblocking solution. I'm using a combination of Dnsmasq and HAProxy. You will have to compile HAProxy on your own if you don't get a version >= 1.5 using yum/apt-get. Alternatively, you can get a recent HAProxy version from a (untrusted) repository: http://haproxy.debian.net. Make sure the JSON-Library is available for PHP.
 
 THIS IS NOT A TUTORIAL!
 
@@ -16,10 +16,9 @@ See here for additional information:
 - http://trick77.com/2014/03/02/dns-unblocking-using-dnsmasq-haproxy/
 
 I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.54 so you can start with your DNS forwarder setup first and add your own HAProxy server later. This server supports simple-mode only.
-Here's a tester which may help you while deploying your own DNS unblocking solution:
-http://trick77.com/dns-unblocking-setup-tester/
+Here's a tester which may help while deploying your own DNS unblocking solution:
 
-Please drop a comment in http://trick77.com/2014/04/17/dns-unblocking-generator-update/ once you've managed to set up your own DNS-unblocking service!
+http://trick77.com/dns-unblocking-setup-tester/
 
 Want to add a service to config.json or found an outdated configuration section? Please send a pull request with the  updated configuration.
 
@@ -37,11 +36,15 @@ For this mode, call the generator like this:
 The generator will create two files based on the information in json.config:
 - haproxy.conf
 - dnsmasq-haproxy.conf
+
+Test your new setup with http://trick77.com/dns-unblocking-setup-tester/
  
 #### non-sni (Advanced Setup)
 
 non-sni mode enables DNS-unblocking for multimedia players (or applications) which can't handle SNI but still using just a single IP address using some netfilter trickery. See here for more information on this mode:
 http://trick77.com/2014/04/02/netflix-dns-unblocking-without-sni-xbox-360-ps3-samsung-tv/
+
+Test your new setup with http://trick77.com/dns-unblocking-setup-tester/
 
 Non-conclusive list of devices which don't understand SNI:
 - Xbox 360 
