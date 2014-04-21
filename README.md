@@ -49,7 +49,7 @@ Test your new setup with http://trick77.com/dns-unblocking-setup-tester/
 Non-conclusive list of devices which don't understand SNI:
 - Xbox 360 
 - PS3
-- All Sony TVs and Blu Ray players 
+- All Sony TVs and Blu-ray players 
 - Older Samsung TVs
 
 #### local (Advanced Setup)
