@@ -15,7 +15,7 @@ See here for additional information:
 - http://trick77.com/2014/03/01/tunlr-style-dns-unblocking-pandora-netflix-hulu-et-al/
 - http://trick77.com/2014/03/02/dns-unblocking-using-dnsmasq-haproxy/
 
-I'm currently running a HAProxy-based DNS-unblocker on 208.110.82.54 so you can start with your DNS forwarder setup first and add your own HAProxy server later. This server supports the pure-sni mode only.
+I'm currently running a HAProxy-based DNS-unblocker on 199.204.184.146 so you can start with your DNS forwarder setup first and add your own HAProxy server later. This server supports the pure-sni mode only.
 Here's a tester which may help while deploying your own DNS unblocking solution:
 
 http://trick77.com/dns-unblocking-setup-tester/
