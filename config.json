@@ -1508,6 +1508,22 @@
       ],
       "catchall":false,
       "enabled":true
+    },
+    {
+      "name":"netflix-htmltvui-api",
+      "dest_addr":"htmltvui-api.netflix.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
     }
   ]
 }
