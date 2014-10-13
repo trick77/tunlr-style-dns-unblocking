@@ -5,7 +5,7 @@
   "dnat_base_port": 27200, // Only required for mode "non-sni"
   "loopback_base_ip": "127.0.0.51", // Only required for mode "local"
   "server_options": "check inter 10s fastinter 2s downinter 2s fall 1800", // Don't touch unless you know what you're doing
-  "stats": { 
+  "stats": {
     "enabled": true, // Set to true to enable HAProxy stats web page
     "port": 27199,
     "user": "haproxy",
@@ -13,6 +13,22 @@
   },
   // *** PROXY CONFIGURATION STARTS HERE
   "proxies":[
+    {
+      "name":"humble-bundle",
+      "dest_addr":"www.humblebundle.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
+    },
     {
       "name":"hulu-secure",
       "dest_addr":"s.hulu.com",
