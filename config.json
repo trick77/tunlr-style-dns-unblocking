@@ -1540,6 +1540,18 @@
       ],
       "catchall":false,
       "enabled":true
+    },
+    {
+      "name":"hlsioscwtv-warnerbros-com",
+      "dest_addr":"hlsioscwtv.warnerbros.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
     }
   ]
 }
