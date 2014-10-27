@@ -1840,6 +1840,22 @@
       ],
       "catchall":true,
       "enabled":true
+    },
+    {
+      "name":"register.hbogo.com",
+      "dest_addr":"register.hbogo.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":true,
+      "enabled":true
     }
   ]
 }
