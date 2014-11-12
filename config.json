@@ -94,6 +94,22 @@
       "enabled":true
     },
     {
+      "name":"netflix-www2",
+      "dest_addr":"www2.netflix.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
+    },
+    {
       "name":"netflix-appboot",
       "dest_addr":"appboot.netflix.com",
       "modes":[
@@ -112,6 +128,22 @@
     {
       "name":"netflix-cbp-us",
       "dest_addr":"cbp-us.nccp.netflix.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
+    },
+    {
+      "name":"netflix-cbp-eu",
+      "dest_addr":"cbp-eu.nccp.netflix.com",
       "modes":[
         {
           "port":80,
@@ -240,6 +272,22 @@
     {
       "name":"netflix-api-us",
       "dest_addr":"api-us.netflix.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
+    },
+    {
+      "name":"netflix-api-eu",
+      "dest_addr":"api-eu.netflix.com",
       "modes":[
         {
           "port":80,
