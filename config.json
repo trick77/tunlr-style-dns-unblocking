@@ -1856,6 +1856,22 @@
       ],
       "catchall":true,
       "enabled":true
+    },
+    {
+      "name":"www.tvp.pl",
+      "dest_addr":"www.tvp.pl",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":true,
+      "enabled":true
     }
   ]
 }
