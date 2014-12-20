@@ -295,10 +295,10 @@ class GenConf:
 
     def generate_frontend_catchall_entry(self, dest_addr, mode) :
         if (mode == 'http') :
-            return self.format('use_backend b_catchall_' + mode + ' if : hdr(host) -i ' + dest_addr + ' ')
+            return self.format('use_backend b_catchall_' + mode + ' if { hdr(host) -i ' + dest_addr + ' }')
         
         elif (mode == 'https') :
-            return self.format('use_backend b_catchall_' + mode + ' if : req_ssl_sni -i ' + dest_addr + ' ')
+            return self.format('use_backend b_catchall_' + mode + ' if { req_ssl_sni -i ' + dest_addr + ' }')
         
         return None
     
@@ -306,7 +306,7 @@ class GenConf:
     def generate_backend_catchall_entry(self, dest_addr, mode, port, server_options, override_dest_addr = None) :
         result = None
         if (mode == 'http') :
-            result = self.format('use-server ' + dest_addr + ' if : hdr(host) -i ' + dest_addr + ' ')
+            result = self.format('use-server ' + dest_addr + ' if { hdr(host) -i ' + dest_addr + ' }')
             if (override_dest_addr == None) :
                 result += self.format('server ' + dest_addr + ' ' + dest_addr + ':' + str(port) + ' ' + server_options + os.linesep)
             
@@ -315,7 +315,7 @@ class GenConf:
             
         
         elif (mode == 'https') :
-            result = self.format('use-server ' + dest_addr + ' if : req_ssl_sni -i ' + dest_addr + ' ')
+            result = self.format('use-server ' + dest_addr + ' if { req_ssl_sni -i ' + dest_addr + ' }')
             result += self.format('server ' + dest_addr + ' ' + dest_addr + ':' + str(port) + ' ' + server_options + os.linesep)
         
         return result
@@ -435,7 +435,7 @@ class GenConf:
             result += self.format('option tcplog')
             if (is_catchall) :
                 result += self.format('tcp-request inspect-delay 5s')
-                result += self.format('tcp-request content accept if : req_ssl_hello_type 1 ')
+                result += self.format('tcp-request content accept if { req_ssl_hello_type 1 }')
             
         
         if (is_catchall) :
