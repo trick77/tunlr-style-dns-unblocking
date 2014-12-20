@@ -31,7 +31,7 @@ Requires a U.S. based server (a 128 MB low end VPS is enough) and preferrably a 
 In pure-sni mode, you don't have to worry about the dnat_base_ip, dnat_base_port and loopback_base_ip options. Those options are not used, just leave them at their defaults. Make sure iptables_location points to the iptables executable and enter your VPS' IP address in haproxy_bind_ip. Make sure the ports 80 and 443 on your VPS are not being used by some other software like Apache2. Use ```netstat -tulpn``` to make sure.
 
 For this mode, call the generator like this:
-```php genconf.php pure-sni```
+```python genconf.py pure-sni```
 
 The generator will create two files based on the information in json.config:
 - haproxy.conf
