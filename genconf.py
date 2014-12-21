@@ -491,9 +491,9 @@ def main(cmd, skipdns, skipproxy):
     if cmd == "non-sni":
         g.create_non_sni_config("config.json", haproxy_filename, dnsmasq_filename)
     elif cmd == "local":
-        g.create_local_non_sni_config("config.json", haproxy_filename, dnsmasq_filename)
+        g.create_local_non_sni_config("config.json", haproxy_filename)
     elif cmd == "pure-sni":
-        g.create_pure_sni_config("config.json", haproxy_filename)
+        g.create_pure_sni_config("config.json", haproxy_filename, dnsmasq_filename)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate configuration files to setup a tunlr style smart DNS")
