@@ -477,11 +477,11 @@ class GenConf:
         return line + os.linesep
     
 def main(cmd, skipdns, skipproxy):
-    if skipdns:
+    if skipproxy:
         haproxy_filename = None
     else:
         haproxy_filename = "haproxy.conf"
-    if skipproxy:
+    if skipdns:
         dnsmasq_filename = None
     else:
         dnsmasq_filename = "dnsmasq-haproxy.conf"
