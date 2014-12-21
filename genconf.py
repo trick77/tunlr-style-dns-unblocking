@@ -2,6 +2,7 @@ import json as json2
 import os
 import sys
 import re
+import argparse
 from socket import inet_ntoa, inet_aton
 from struct import pack, unpack
 INDENT = '  '
@@ -21,7 +22,7 @@ def long2ip(ip):
 def ip2long(ip_addr):
     return unpack("!L", inet_aton(ip_addr))[0]
 class GenConf:
-    def create_pure_sni_config(self, json_in_filename, haproxy_out_filename='haproxy.conf', dnsmasq_out_filename='dnsmasq-haproxy.conf'):
+    def create_pure_sni_config(self, json_in_filename, haproxy_out_filename=None, dnsmasq_out_filename=None):
         content = get_contents(json_in_filename)
         json = json_decode(content)
         iptables_location = json["iptables_location"]
@@ -74,12 +75,13 @@ class GenConf:
         
         print iptables_location + ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' + haproxy_bind_ip + ' --dports ' + "80" + ':' + "443" + ' -j ACCEPT' + os.linesep
         
+        if haproxy_out_filename != None:
+            put_contents(haproxy_out_filename, haproxy_content)
+            print 'File generated: ' + haproxy_out_filename + os.linesep
 
-        put_contents(haproxy_out_filename, haproxy_content)
-        print 'File generated: ' + haproxy_out_filename + os.linesep
-
-        put_contents(dnsmasq_out_filename, dnsmasq_content)
-        print 'File generated: ' + dnsmasq_out_filename + os.linesep
+        if dnsmasq_out_filename != None:
+            put_contents(dnsmasq_out_filename, dnsmasq_content)
+            print 'File generated: ' + dnsmasq_out_filename + os.linesep
 
         print ""
         print '***********************************************************************************************' + os.linesep
@@ -90,7 +92,7 @@ class GenConf:
 
     
 
-    def create_non_sni_config(self, json_in_filename, haproxy_out_filename = 'haproxy.conf', dnsmasq_out_filename = 'dnsmasq-haproxy.conf', iptables_out_filename = 'iptables-haproxy.sh') :
+    def create_non_sni_config(self, json_in_filename, haproxy_out_filename=None, dnsmasq_out_filename=None, iptables_out_filename='iptables-haproxy.sh') :
         content = get_contents(json_in_filename)
         json = json_decode(content)
         iptables_location = json["iptables_location"]
@@ -174,18 +176,18 @@ class GenConf:
         
         print iptables_location + ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' + haproxy_bind_ip + ' --dports ' + str(json["dnat_base_port"]) + ':' + "--current_dnat_port" + ' -j ACCEPT' + os.linesep
         
-
-        put_contents(haproxy_out_filename, haproxy_content)
-        print 'File generated: ' + haproxy_out_filename + os.linesep
-
-        put_contents(dnsmasq_out_filename, dnsmasq_content)
-        print 'File generated: ' + dnsmasq_out_filename + os.linesep
+        if haproxy_out_filename != None:
+            put_contents(haproxy_out_filename, haproxy_content)
+            print 'File generated: ' + haproxy_out_filename + os.linesep
+        if dnsmasq_out_filename != None:
+            put_contents(dnsmasq_out_filename, dnsmasq_content)
+            print 'File generated: ' + dnsmasq_out_filename + os.linesep
 
         put_contents(iptables_out_filename, iptables_content)
         print 'File generated: ' + iptables_out_filename + os.linesep
     
 
-    def create_local_non_sni_config(self, json_in_filename, haproxy_out_filename = 'haproxy.conf', netsh_out_filename = 'netsh-haproxy.cmd', hosts_out_filename = 'hosts-haproxy.txt', rinetd_out_filename = 'rinetd-haproxy.conf') :
+    def create_local_non_sni_config(self, json_in_filename, haproxy_out_filename=None, netsh_out_filename = 'netsh-haproxy.cmd', hosts_out_filename = 'hosts-haproxy.txt', rinetd_out_filename = 'rinetd-haproxy.conf') :
         content = get_contents(json_in_filename)
         json = json_decode(content)
         iptables_location = json["iptables_location"]
@@ -270,9 +272,9 @@ class GenConf:
         
         print iptables_location + ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' + haproxy_bind_ip + ' --dports ' + str(json["dnat_base_port"]) + ':' + "--current_dnat_port" + ' -j ACCEPT' + os.linesep
         
-
-        put_contents(haproxy_out_filename, haproxy_content)
-        print 'File generated: ' + haproxy_out_filename + os.linesep
+        if haproxy_out_filename != None:
+            put_contents(haproxy_out_filename, haproxy_content)
+            print 'File generated: ' + haproxy_out_filename + os.linesep
 
         put_contents(hosts_out_filename,  self.generate_hosts_content(hosts))
         print 'File generated: ' + hosts_out_filename + os.linesep
@@ -474,18 +476,29 @@ class GenConf:
         
         return line + os.linesep
     
-
-if len(sys.argv) == 2:
-    g = GenConf()
-    arg1 = sys.argv[1].lower()
-    if arg1 == "non-sni":
-        g.create_non_sni_config("config.json")
-    elif arg1 == "local":
-        g.create_local_non_sni_config("config.json")
-    elif arg1 == "pure-sni":
-        g.create_pure_sni_config("config.json")
+def main(cmd, skipdns, skipproxy):
+    if skipdns:
+        haproxy_filename = None
     else:
-        print "Missing/wrong argument, use pure-sni (simple setup), non-sni (advanced setup),  local (advanced setup)"
+        haproxy_filename = "haproxy.conf"
+    if skipproxy:
+        dnsmasq_filename = None
+    else:
+        dnsmasq_filename = "dnsmasq-haproxy.conf"
 
-else:
-    print "Missing/wrong argument, use pure-sni (simple setup), non-sni (advanced setup),  local (advanced setup)"
+    g = GenConf()
+
+    if cmd == "non-sni":
+        g.create_non_sni_config("config.json", haproxy_filename, dnsmasq_filename)
+    elif cmd == "local":
+        g.create_local_non_sni_config("config.json", haproxy_filename, dnsmasq_filename)
+    elif cmd == "pure-sni":
+        g.create_pure_sni_config("config.json", haproxy_filename)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Generate configuration files to setup a tunlr style smart DNS")
+    parser.add_argument("cmd", choices=["non-sni", "local", "pure-sni"], type=str, help="The type of configuration files to generate")
+    parser.add_argument("-d", "--no-dns", action="store_true", help="Skip generating the DNS configuration file")
+    parser.add_argument("-p", "--no-proxy", action="store_true", help="Skip generating the haproxy configuration file")
+    args = parser.parse_args()
+    main(args.cmd, args.no_dns, args.no_proxy)
