@@ -291,7 +291,7 @@ class GenConf {
 
     function generate_frontend_catchall_entry($dest_addr, $mode) {
         if ($mode === 'http') {
-            return $this->format('use_backend b_catchall_' . $mode . ' if { hdr(host) -i ' . $dest_addr . ' }');
+            return $this->format('use_backend b_catchall_' . $mode . ' if { hdr_dom(host) -i ' . $dest_addr . ' }');
         }
         else if ($mode === 'https') {
             return $this->format('use_backend b_catchall_' . $mode . ' if { req_ssl_sni -i ' . $dest_addr . ' }');
@@ -302,7 +302,7 @@ class GenConf {
     function generate_backend_catchall_entry($dest_addr, $mode, $port, $server_options, $override_dest_addr = NULL) {
         $result = NULL;
         if ($mode === 'http') {
-            $result = $this->format('use-server ' . $dest_addr . ' if { hdr(host) -i ' . $dest_addr . ' }');
+            $result = $this->format('use-server ' . $dest_addr . ' if { hdr_dom(host) -i ' . $dest_addr . ' }');
             if ($override_dest_addr == NULL) {
                 $result .= $this->format('server ' . $dest_addr . ' ' . $dest_addr . ':' . $port . ' ' . $server_options . PHP_EOL);
             }
