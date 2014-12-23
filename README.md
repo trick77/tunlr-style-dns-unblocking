@@ -73,3 +73,6 @@ For Linux:
 
 - To reset: 'sudo sed -i '/### GENERATED/d' /etc/hosts' and 'sudo service rinetd stop && sudo rm /etc/rinetd.conf'
 
+#### Too complicated?
+
+Check out https://github.com/skorokithakis/netproxy for a ready-made DNS-unblocking solution using Docker!
