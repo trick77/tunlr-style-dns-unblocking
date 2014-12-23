@@ -1,11 +1,8 @@
 from util import config_format
 import os
-def generate(json, catchall = True, test = True, base_ip = None):
+def generate(json, catchall = True, test = True):
     haproxy_bind_ip = json["haproxy_bind_ip"]
     server_options = json["server_options"]
-    if base_ip == None:
-        base_ip = json["base_ip"]
-    current_ip = base_ip
     current_port = json["base_port"]
 
     haproxy_content = generate_global()
