@@ -14,16 +14,13 @@ def create_pure_sni_config(json_in_filename, haproxy_out_filename=None, dnsmasq_
     content = get_contents(json_in_filename)
     json = json_decode(content)
     iptables_location = json["iptables_location"]
-    haproxy_bind_ip = json["haproxy_bind_ip"]
+    public_ip = json["public_ip"]
     dnsmasq_content = generate_dnsmasq(json)
 
     haproxy_content = generate_haproxy(json)
 
-    print 'If you are using an inbound firewall on ' + haproxy_bind_ip + ':' + os.linesep
-    if json["stats"]["enabled"]:
-        print iptables_location + ' -A INPUT -p tcp -m state --state NEW -d ' + haproxy_bind_ip + ' --dport ' + str(json["stats"]["port"]) + ' -j ACCEPT'
+    print_firewall(json)
     
-    print iptables_location + ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' + haproxy_bind_ip + ' --dports ' + "80" + ':' + "443" + ' -j ACCEPT'
     
     if haproxy_out_filename != None:
         put_contents(haproxy_out_filename, haproxy_content, base_dir=BASE_DIR)
@@ -36,7 +33,7 @@ def create_pure_sni_config(json_in_filename, haproxy_out_filename=None, dnsmasq_
     print ""
     print '***********************************************************************************************'
     print 'Caution: it\'s not recommended but it\'s possible to run a (recursive) DNS forwarder on your'
-    print 'remote server ' + haproxy_bind_ip + '. If you leave the DNS port wide open to everyone,'
+    print 'remote server ' + public_ip + '. If you leave the DNS port wide open to everyone,'
     print 'your server will get terminated sooner or later because of abuse (DDoS amplification attacks).'
     print '***********************************************************************************************'
 
@@ -60,7 +57,7 @@ def create_non_sni_config(json_in_filename, haproxy_out_filename=None, dnsmasq_o
             print current_ip
 
     
-    print_firewall(json)
+    print_firewall(json, catchall=False)
 
     if haproxy_out_filename != None:
         put_contents(haproxy_out_filename, haproxy_content, base_dir=BASE_DIR)
@@ -82,7 +79,7 @@ def create_local_non_sni_config(json_in_filename, haproxy_out_filename=None, net
     hosts_content = generate_hosts(json)
     haproxy_content = generate_haproxy(json, catchall=False)
 
-    print_firewall(json)
+    print_firewall(json, catchall=False)
     
     if haproxy_out_filename != None:
         put_contents(haproxy_out_filename, haproxy_content, base_dir=BASE_DIR)
@@ -96,13 +93,19 @@ def create_local_non_sni_config(json_in_filename, haproxy_out_filename=None, net
     if rinetd_out_filename != None:
         put_contents(rinetd_out_filename, rinetd_content, base_dir=BASE_DIR)
         print 'File generated: ' + rinetd_out_filename
-def print_firewall(json):
-    bind_ip = json["haproxy_bind_ip"]
+def print_firewall(json, catchall=True):
+    bind_ip = json["public_ip"]
     print 'If you are using an inbound firewall on ' + bind_ip + ':'
-    if json["stats"]["enabled"]:
-        print json["iptables_location"] + ' -A INPUT -p tcp -m state --state NEW -d ' + bind_ip + ' --dport ' + str(json["stats"]["port"]) + ' -j ACCEPT'
-    
-    print json["iptables_location"] + ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' + bind_ip + ' --dports ' + str(json["base_port"]) + ':' + str(port_range(json)) + ' -j ACCEPT' 
+    if catchall:
+        if json["stats"]["enabled"]:
+            print json["iptables_location"] + ' -A INPUT -p tcp -m state --state NEW -d ' + bind_ip + ' --dport ' + str(json["stats"]["port"]) + ' -j ACCEPT'
+        
+        print json["iptables_location"] + ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' + bind_ip + ' --dports ' + "80" + ',' + "443" + ' -j ACCEPT'
+    else:
+        if json["stats"]["enabled"]:
+            print json["iptables_location"] + ' -A INPUT -p tcp -m state --state NEW -d ' + bind_ip + ' --dport ' + str(json["stats"]["port"]) + ' -j ACCEPT'
+        
+        print json["iptables_location"] + ' -A INPUT -p tcp -m state --state NEW -m multiport -d ' + bind_ip + ' --dports ' + str(json["base_port"]) + ':' + str(port_range(json)) + ' -j ACCEPT' 
     
 def port_range(json):
     start = json["base_port"]

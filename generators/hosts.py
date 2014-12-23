@@ -1,7 +1,6 @@
 from util import long2ip, ip2long
 import os
 def generate(json, test = True):
-    haproxy_bind_ip = json["haproxy_bind_ip"]
     current_ip = json["base_ip"]
     hosts = dict()
     for proxy in json["proxies"]:

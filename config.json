@@ -1,6 +1,7 @@
 {
   "iptables_location": "/sbin/iptables", // Required to generate iptables rules
-  "haproxy_bind_ip": "199.204.184.146", // IP address of your remote server, required for every mode
+  "bind_ip": "0.0.0.0", // The IP address to bind to
+  "public_ip": "199.204.184.146", // IP address of your remote server, required for every mode
   "base_ip": "199.233.245.62", // Only required for modes "non-sni" and "local"
   // "base_ip": "127.0.0.51", // For local
   "base_port": 27200, // Only required for mode "non-sni"

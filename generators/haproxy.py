@@ -1,7 +1,8 @@
 from util import config_format
 import os
 def generate(json, catchall = True, test = True):
-    haproxy_bind_ip = json["haproxy_bind_ip"]
+    public_ip = json["public_ip"]
+    bind_ip = json["bind_ip"]
     server_options = json["server_options"]
     current_port = json["base_port"]
 
@@ -16,14 +17,14 @@ def generate(json, catchall = True, test = True):
         http_port = current_port
         https_port = current_port + 1
 
-    haproxy_catchall_frontend_content = generate_frontend('catchall', 'http', haproxy_bind_ip, http_port, True)
+    haproxy_catchall_frontend_content = generate_frontend('catchall', 'http', bind_ip, http_port, True)
     haproxy_catchall_backend_content = generate_backend('catchall', 'http', None, None, None, True)
 
-    haproxy_catchall_frontend_ssl_content = generate_frontend('catchall', 'https', haproxy_bind_ip, https_port, True)
+    haproxy_catchall_frontend_ssl_content = generate_frontend('catchall', 'https', bind_ip, https_port, True)
     haproxy_catchall_backend_ssl_content = generate_backend('catchall', 'https', None, None, None, True)
 
     if json["stats"]["enabled"]:
-        haproxy_content += generate_stats(json["stats"], haproxy_bind_ip)
+        haproxy_content += generate_stats(json["stats"], bind_ip)
 
     for proxy in json["proxies"]:
         if proxy["enabled"]:
@@ -51,7 +52,7 @@ def generate(json, catchall = True, test = True):
         for proxy in json["proxies"]:
             if proxy["enabled"] and not proxy["catchall"]:
                 for mode in proxy["modes"]:
-                    haproxy_content += generate_frontend(proxy["name"], mode["mode"], haproxy_bind_ip, current_port, False)
+                    haproxy_content += generate_frontend(proxy["name"], mode["mode"], bind_ip, current_port, False)
                     haproxy_content += generate_backend(proxy["name"], mode["mode"], proxy["dest_addr"], mode["port"], server_options, False)
                     current_port += 1
 
@@ -138,11 +139,11 @@ def generate_deadend(mode):
     return result
 
 
-def generate_stats(stats, haproxy_bind_ip):
+def generate_stats(stats, bind_ip):
     if stats["password"] == "":
         stats["password"] = raw_input("Please enter a password for the HAproxy stats: ")
     result = config_format('listen stats', False)
-    result += config_format('bind ' + haproxy_bind_ip + ':' + str(stats["port"]))
+    result += config_format('bind ' + bind_ip + ':' + str(stats["port"]))
     result += config_format('mode http')
     result += config_format('stats enable')
     result += config_format('stats realm Protected\\ Area')
@@ -152,9 +153,9 @@ def generate_stats(stats, haproxy_bind_ip):
     return result
 
 
-def generate_frontend(proxy_name, mode, haproxy_bind_ip, current_port, is_catchall):
+def generate_frontend(proxy_name, mode, bind_ip, current_port, is_catchall):
     result = config_format('frontend f_' + proxy_name + '_' + mode, False)
-    result += config_format('bind ' + haproxy_bind_ip + ':' + str(current_port))
+    result += config_format('bind ' + bind_ip + ':' + str(current_port))
 
     if mode == 'http':
         result += config_format('mode http')

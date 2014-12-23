@@ -28,14 +28,14 @@ Use this setup if all your multimedia players are SNI-capable.
 
 Requires a U.S. based server (a 128 MB low end VPS is enough) and preferrably a local Dnsmasq DNS forwarder. DD-WRT routers or a Raspberry Pi will do. You could run Dnsmasq on the remote server as well but it's not recommended for security and latency reasons.
 
-In pure-sni mode, you don't have to worry about the dnat_base_ip, dnat_base_port and loopback_base_ip options. Those options are not used, just leave them at their defaults. Make sure iptables_location points to the iptables executable and enter your VPS' IP address in haproxy_bind_ip. Make sure the ports 80 and 443 on your VPS are not being used by some other software like Apache2. Use ```netstat -tulpn``` to make sure.
+In pure-sni mode, you don't have to worry about the base_ip and the base_port options. Those options are not used, just leave them at their defaults. Make sure iptables_location points to the iptables executable and enter your VPS' IP address in haproxy_bind_ip. Make sure the ports 80 and 443 on your VPS are not being used by some other software like Apache2. Use ```netstat -tulpn``` to make sure.
 
 For this mode, call the generator like this:
 ```python genconf.py pure-sni```
 
 The generator will create two files based on the information in json.config:
-- haproxy.conf
-- dnsmasq-haproxy.conf
+- generated/haproxy.conf
+- generated/dnsmasq-haproxy.conf
 
 Test your new setup with http://trick77.com/dns-unblocking-setup-tester/
  
