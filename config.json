@@ -1952,6 +1952,70 @@
       ],
       "catchall":true,
       "enabled":true
+    },
+    {
+      "name":"scee-vidzone-tv",
+      "dest_addr":"scee.vidzone.tv",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
+    },
+    {
+      "name":"sceeassets-vidzone-tv",
+      "dest_addr":"sceeassets.vidzone.tv",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
+    },
+    {
+      "name":"ps4-api-us-crackle-com",
+      "dest_addr":"ps4-api-us.crackle.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
+    },
+    {
+      "name":"apiv2-vevo-com",
+      "dest_addr":"apiv2.vevo.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":false,
+      "enabled":true
     }
   ]
 }
