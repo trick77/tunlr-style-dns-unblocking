@@ -1,9 +1,8 @@
 from util import long2ip, ip2long
 import os
-def generate(json, catchall = True, test = True, base_ip = None):
+def generate(json, catchall = True, test = True):
     haproxy_bind_ip = json["haproxy_bind_ip"]
-    if base_ip == None:
-        base_ip = json["dnat_base_ip"]
+    base_ip = json["base_ip"]
     current_dnat_ip = base_ip
     dnsmasq_content = ""
     for proxy in json["proxies"]:

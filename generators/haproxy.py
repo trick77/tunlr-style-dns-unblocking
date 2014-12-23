@@ -4,9 +4,9 @@ def generate(json, catchall = True, test = True, base_ip = None):
     haproxy_bind_ip = json["haproxy_bind_ip"]
     server_options = json["server_options"]
     if base_ip == None:
-        base_ip = json["dnat_base_ip"]
+        base_ip = json["base_ip"]
     current_ip = base_ip
-    current_port = json["dnat_base_port"]
+    current_port = json["base_port"]
 
     haproxy_content = generate_global()
     haproxy_content += generate_defaults()
@@ -64,34 +64,34 @@ def generate(json, catchall = True, test = True, base_ip = None):
 
     return haproxy_content
 
-def generate_frontend_catchall_entry(dest_addr, mode) :
-    if (mode == 'http') :
+def generate_frontend_catchall_entry(dest_addr, mode):
+    if (mode == 'http'):
         return config_format('use_backend b_catchall_' + mode + ' if { hdr(host) -i ' + dest_addr + ' }')
     
-    elif (mode == 'https') :
+    elif (mode == 'https'):
         return config_format('use_backend b_catchall_' + mode + ' if { req_ssl_sni -i ' + dest_addr + ' }')
     
     return None
 
 
-def generate_backend_catchall_entry(dest_addr, mode, port, server_options, override_dest_addr = None) :
+def generate_backend_catchall_entry(dest_addr, mode, port, server_options, override_dest_addr = None):
     result = None
-    if (mode == 'http') :
+    if (mode == 'http'):
         result = config_format('use-server ' + dest_addr + ' if { hdr(host) -i ' + dest_addr + ' }')
-        if (override_dest_addr == None) :
+        if (override_dest_addr == None):
             result += config_format('server ' + dest_addr + ' ' + dest_addr + ':' + str(port) + ' ' + server_options + os.linesep)
         
-        else :
+        else:
             result += config_format('server ' + dest_addr + ' ' + override_dest_addr + ':' + str(port) + ' ' + server_options + os.linesep)
         
     
-    elif (mode == 'https') :
+    elif (mode == 'https'):
         result = config_format('use-server ' + dest_addr + ' if { req_ssl_sni -i ' + dest_addr + ' }')
         result += config_format('server ' + dest_addr + ' ' + dest_addr + ':' + str(port) + ' ' + server_options + os.linesep)
     
     return result
 
-def generate_global() :
+def generate_global():
     result = config_format('global', False)
     result += config_format('daemon')
     result += config_format('maxconn 20000')
@@ -105,7 +105,7 @@ def generate_global() :
     return result
 
 
-def generate_defaults() :
+def generate_defaults():
     result = config_format('defaults', False)
     result += config_format('maxconn 19500')
     result += config_format('log global')
@@ -124,15 +124,15 @@ def generate_defaults() :
     return result
 
 
-def generate_deadend(mode) :
+def generate_deadend(mode):
     result = config_format('backend b_deadend_' + mode, False)
-    if (mode == 'http') :
+    if (mode == 'http'):
         result += config_format('mode http')
         result += config_format('option httplog')
         result += config_format('option accept-invalid-http-response')
         result += config_format('option http-server-close')
     
-    elif (mode == 'https') :
+    elif (mode == 'https'):
         result += config_format('mode tcp')
         result += config_format('option tcplog')
     
@@ -141,7 +141,9 @@ def generate_deadend(mode) :
     return result
 
 
-def generate_stats(stats, haproxy_bind_ip) :
+def generate_stats(stats, haproxy_bind_ip):
+    if stats["password"] == "":
+        stats["password"] = raw_input("Please enter a password for the HAproxy stats: ")
     result = config_format('listen stats', False)
     result += config_format('bind ' + haproxy_bind_ip + ':' + str(stats["port"]))
     result += config_format('mode http')
@@ -153,49 +155,49 @@ def generate_stats(stats, haproxy_bind_ip) :
     return result
 
 
-def generate_frontend(proxy_name, mode, haproxy_bind_ip, current_dnat_port, is_catchall) :
+def generate_frontend(proxy_name, mode, haproxy_bind_ip, current_port, is_catchall):
     result = config_format('frontend f_' + proxy_name + '_' + mode, False)
-    result += config_format('bind ' + haproxy_bind_ip + ':' + str(current_dnat_port))
+    result += config_format('bind ' + haproxy_bind_ip + ':' + str(current_port))
 
-    if (mode == 'http') :
+    if (mode == 'http'):
         result += config_format('mode http')
         result += config_format('option httplog')
         result += config_format('capture request header Host len 50')
         result += config_format('capture request header User-Agent len 150')
     
-    elif (mode == 'https') :
+    elif (mode == 'https'):
         result += config_format('mode tcp')
         result += config_format('option tcplog')
-        if (is_catchall) :
+        if (is_catchall):
             result += config_format('tcp-request inspect-delay 5s')
             result += config_format('tcp-request content accept if { req_ssl_hello_type 1 }')
         
     
-    if (is_catchall) :
+    if (is_catchall):
         result += config_format('default_backend b_deadend_' + mode)
     
-    else :
+    else:
         result += config_format('default_backend b_' + proxy_name + '_' + mode)
     
     result += os.linesep
     return result
 
 
-def generate_backend(proxy_name, mode, dest_addr, port, server_options, is_catchall) :
+def generate_backend(proxy_name, mode, dest_addr, port, server_options, is_catchall):
     result = config_format('backend b_' + proxy_name + '_' + mode, False)
 
-    if (mode == 'http') :
+    if (mode == 'http'):
         result += config_format('mode http')
         result += config_format('option httplog')
         result += config_format('option accept-invalid-http-response')
 
     
-    elif (mode == 'https') :
+    elif (mode == 'https'):
         result += config_format('mode tcp')
         result += config_format('option tcplog')
     
 
-    if (not is_catchall) :
+    if (not is_catchall):
         result += config_format('server ' + dest_addr + ' ' + dest_addr + ':' + str(port) + ' ' + server_options)
     
     return result + os.linesep

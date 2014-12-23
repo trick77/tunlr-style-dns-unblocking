@@ -47,8 +47,8 @@ def create_non_sni_config(json_in_filename, haproxy_out_filename=None, dnsmasq_o
 
     iptables_location = json["iptables_location"]
     haproxy_bind_ip = json["haproxy_bind_ip"]
-    current_dnat_ip = json["dnat_base_ip"]
-    current_dnat_port = json["dnat_base_port"]
+    current_dnat_ip = json["base_ip"]
+    current_dnat_port = json["base_port"]
 
     dnsmasq_content = generate_dnsmasq(json, catchall=False, base_ip=current_dnat_ip)
     haproxy_content = generate_haproxy(json, catchall=False, base_ip=current_dnat_ip)
@@ -95,8 +95,8 @@ def create_local_non_sni_config(json_in_filename, haproxy_out_filename=None, net
 
     iptables_location = json["iptables_location"]
     haproxy_bind_ip = json["haproxy_bind_ip"]
-    current_loopback_ip = json["loopback_base_ip"]
-    current_dnat_port = json["dnat_base_port"]
+    current_loopback_ip = json["base_ip"]
+    current_dnat_port = json["base_port"]
 
     netsh_content = ''
     rinetd_content = ''

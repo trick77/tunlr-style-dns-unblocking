@@ -1,15 +1,15 @@
 {
   "iptables_location": "/sbin/iptables", // Required to generate iptables rules
   "haproxy_bind_ip": "199.204.184.146", // IP address of your remote server, required for every mode
-  "dnat_base_ip": "192.168.178.51", // Only required for mode "non-sni"
-  "dnat_base_port": 27200, // Only required for mode "non-sni"
-  "loopback_base_ip": "127.0.0.51", // Only required for mode "local"
+  "base_ip": "192.168.178.51", // Only required for modes "non-sni" and "local"
+  // "base_ip": "127.0.0.51", // For local
+  "base_port": 27200, // Only required for mode "non-sni"
   "server_options": "check inter 10s fastinter 2s downinter 2s fall 1800", // Don't touch unless you know what you're doing
   "stats": {
     "enabled": true, // Set to true to enable HAProxy stats web page
     "port": 27199,
     "user": "haproxy",
-    "password": "Change-Me-Now"
+    "password": ""
   },
   // *** PROXY CONFIGURATION STARTS HERE
   "proxies":[
