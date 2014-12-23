@@ -1,7 +1,7 @@
 {
   "iptables_location": "/sbin/iptables", // Required to generate iptables rules
   "haproxy_bind_ip": "199.204.184.146", // IP address of your remote server, required for every mode
-  "base_ip": "192.168.178.51", // Only required for modes "non-sni" and "local"
+  "base_ip": "199.233.245.62", // Only required for modes "non-sni" and "local"
   // "base_ip": "127.0.0.51", // For local
   "base_port": 27200, // Only required for mode "non-sni"
   "server_options": "check inter 10s fastinter 2s downinter 2s fall 1800", // Don't touch unless you know what you're doing
@@ -1844,6 +1844,102 @@
     {
       "name":"register.hbogo.com",
       "dest_addr":"register.hbogo.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":true,
+      "enabled":true
+    },
+    {
+      "name":"southpark.cc.com",
+      "dest_addr":"southpark.cc.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":true,
+      "enabled":true
+    },
+    {
+      "name":"hulu.com",
+      "dest_addr":"hulu.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":true,
+      "enabled":true
+    },
+    {
+      "name":"www.hulu.com",
+      "dest_addr":"www.hulu.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":true,
+      "enabled":true
+    },
+    {
+      "name":"secure.hulu.com",
+      "dest_addr":"secure.hulu.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":true,
+      "enabled":true
+    },
+    {
+      "name":"netflix.com",
+      "dest_addr":"netflix.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":true,
+      "enabled":true
+    },
+    {
+      "name":"pandora.com",
+      "dest_addr":"pandora.com",
       "modes":[
         {
           "port":80,
