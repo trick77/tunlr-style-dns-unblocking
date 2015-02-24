@@ -582,8 +582,24 @@
       "enabled":true
     },
     {
-      "name":"abc-watchabc",
-      "dest_addr":"api.watchabc.go.com",
+      "name":"abc—utils-watchabc",
+      "dest_addr":"api.utils.watchabc.go.com",
+      "modes":[
+        {
+          "port":80,
+          "mode":"http"
+        },
+        {
+          "port":443,
+          "mode":"https"
+        }
+      ],
+      "catchall":true,
+      "enabled":true
+    },
+    {
+      "name":"abc—legacypresentation-watchabc",
+      "dest_addr":"api.legacypresentation.watchabc.go.com",
       "modes":[
         {
           "port":80,
