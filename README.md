@@ -3,6 +3,8 @@ tunlr-style-dns-unblocking
 
 **Attention: the proxy list is outdated and as of May 2015, many services don't work anymore (including the demo proxy server). Since the underlying ideas are still valid, I'm leaving the project here as a reference but won't update it anymore.**
 
+**Click here for an easier to install and more recent alternative: https://github.com/trick77/dockerflix**
+
 Since Tunlr.net closed down unexpectedly, I decided to publish my ideas and findings on the subject of DNS unblocking. I used Tunlr for some time when I decided to develop my own, private DNS unblocking solution. I'm using a combination of Dnsmasq and HAProxy. Because IPv4 addresses are getting more and more expensive, I'm focusing on solutions that require just a single public IP address. You will have to compile HAProxy on your own if you don't get a version >= 1.5 using yum/apt-get. Alternatively, you can get a recent HAProxy binary from a (untrusted) repository: http://haproxy.debian.net. Make sure the JSON-Library is available for PHP.
 
 THIS IS NOT A TUTORIAL!
