@@ -326,7 +326,7 @@ class GenConf {
 	if(isset($hosts[$current_loopback_ip])) {
 		array_push($hosts[$current_loopback_ip], $dest_addr);
 	} else {
-		$hosts[$current_loopback_ip] = [$dest_addr];
+		$hosts[$current_loopback_ip] = $dest_addr;
 	}
     }
 
